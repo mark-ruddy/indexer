@@ -26,6 +26,7 @@ const (
 const (
 	ContextUrl          = "https://context.app/api/profile/%s"
 	SuperrareUrl        = "https://superrare.com/api/v2/user?address=%s"
+	FoundationUrl       = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
 	RaribleFollowingUrl = "https://api-mainnet.rarible.com/marketplace/api/v4/followings?owner=%s"
 	RaribleFollowerUrl  = "https://api-mainnet.rarible.com/marketplace/api/v4/followers?user=%s"
 )
@@ -42,29 +43,31 @@ type ConnectionEntry struct {
 }
 
 type IdentityEntryList struct {
-	OpenSea    []UserOpenSeaIdentity
-	Twitter    []UserTwitterIdentity
-	Superrare  []UserSuperrareIdentity
-	Rarible    []UserRaribleIdentity
-	Context    []UserContextIdentity
-	Zora       []UserZoraIdentity
-	Foundation []UserFoundationIdentity
-	Showtime   []UserShowtimeIdentity
-	Ens        string
+	OpenSea             []UserOpenSeaIdentity
+	Twitter             []UserTwitterIdentity
+	Superrare           []UserSuperrareIdentity
+	Rarible             []UserRaribleIdentity
+	Context             []UserContextIdentity
+	Zora                []UserZoraIdentity
+	Foundation          []UserFoundationIdentity
+	FoundationNonSocial []UserFoundationIdentityNonSocial
+	Showtime            []UserShowtimeIdentity
+	Ens                 string
 }
 
 type IdentityEntry struct {
-	OpenSea    *UserOpenSeaIdentity
-	Twitter    *UserTwitterIdentity
-	Superrare  *UserSuperrareIdentity
-	Rarible    *UserRaribleIdentity
-	Context    *UserContextIdentity
-	Zora       *UserZoraIdentity
-	Ens        *UserEnsIdentity
-	Foundation *UserFoundationIdentity
-	Showtime   *UserShowtimeIdentity
-	Err        error
-	Msg        string
+	OpenSea             *UserOpenSeaIdentity
+	Twitter             *UserTwitterIdentity
+	Superrare           *UserSuperrareIdentity
+	Rarible             *UserRaribleIdentity
+	Context             *UserContextIdentity
+	Zora                *UserZoraIdentity
+	Ens                 *UserEnsIdentity
+	Foundation          *UserFoundationIdentity
+	FoundationNonSocial *UserFoundationIdentityNonSocial
+	Showtime            *UserShowtimeIdentity
+	Err                 error
+	Msg                 string
 }
 
 type UserTwitterIdentity struct {
@@ -124,6 +127,31 @@ type UserFoundationIdentity struct {
 	Facebook   string
 	Snapchat   string
 	Instagram  string
+	DataSource string
+}
+
+type UserFoundationIdentityNonSocial struct {
+	IsAdmin         bool
+	NetRevenueInETH string
+	// Deliberately leaving json tags on below structs to allow assignment in processFoundationNonSocial
+	Nfts []struct {
+		TokenIPFSPath      string `json:"tokenIPFSPath"`
+		Name               string `json:"name"`
+		Description        string `json:"description"`
+		Image              string `json:"image"`
+		LastSalePriceInETH string `json:"lastSalePriceInETH"`
+		DateMinted         string `json:"dateMinted"`
+	} `json:"nfts"`
+	Creator struct {
+		NetSalesInETH          string `json:"netSalesInETH"`
+		NetSalesPendingInETH   string `json:"netSalesPendingInETH"`
+		NetRevenueInETH        string `json:"netRevenueInETH"`
+		NetRevenueInPendingETH string `json:"netRevenueInPendingETH"`
+	} `json:"creator"`
+	Withdrawals []struct {
+		AmountInETH string `json:"amountInETH"`
+		Date        string `json:"date"`
+	}
 	DataSource string
 }
 
@@ -187,6 +215,34 @@ type SuperrareProfile struct {
 		SpotifyLink    string `json:"spotifyLink"`
 		SoundCloudLink string `json:"soundcloudLink"`
 	} `json:"result"`
+}
+
+type FoundationProfileNonSocial struct {
+	Data struct {
+		Accounts []struct {
+			IsAdmin         bool   `json:"isAdmin"`
+			NetRevenueInETH string `json:"netRevenueInETH"`
+
+			Nfts []struct {
+				TokenIPFSPath      string `json:"tokenIPFSPath"`
+				Name               string `json:"name"`
+				Description        string `json:"description"`
+				Image              string `json:"image"`
+				LastSalePriceInETH string `json:"lastSalePriceInETH"`
+				DateMinted         string `json:"dateMinted"`
+			} `json:"nfts"`
+			Creator struct {
+				NetSalesInETH          string `json:"netSalesInETH"`
+				NetSalesPendingInETH   string `json:"netSalesPendingInETH"`
+				NetRevenueInETH        string `json:"netRevenueInETH"`
+				NetRevenueInPendingETH string `json:"netRevenueInPendingETH"`
+			} `json:"creator"`
+			Withdrawals []struct {
+				AmountInETH string `json:"amountInETH"`
+				Date        string `json:"date"`
+			} `json:"withdrawals"`
+		} `json:"accounts"`
+	} `json:"data"`
 }
 
 type FoundationIdentity struct {

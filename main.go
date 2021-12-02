@@ -8,7 +8,10 @@ import (
 
 const (
 	// address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045" // vitalik.eth
-	address = "0x983110309620d911731ac0932219af06091b6744" // brantly.eth
+	// address = "0x983110309620d911731ac0932219af06091b6744" // brantly.eth
+
+	// Example address below which has a few NFTs tied to it on Foundation
+	address = "0x000000064730640b7d670408d74280924883064f"
 )
 
 func main() {
