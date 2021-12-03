@@ -27,6 +27,7 @@ const (
 	ContextUrl          = "https://context.app/api/profile/%s"
 	SuperrareUrl        = "https://superrare.com/api/v2/user?address=%s"
 	FoundationUrl       = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
+	OpenSeaUrl          = "https://api.opensea.io/api/v1"
 	RaribleFollowingUrl = "https://api-mainnet.rarible.com/marketplace/api/v4/followings?owner=%s"
 	RaribleFollowerUrl  = "https://api-mainnet.rarible.com/marketplace/api/v4/followers?user=%s"
 )
@@ -84,8 +85,29 @@ type UserRaribleIdentity struct {
 }
 
 type UserOpenSeaIdentity struct {
-	Username   string
-	Homepage   string
+	Username        string
+	Homepage        string
+	ProfileImageUrl string
+	// Deliberately leaving json tags on below struct to allow assignment in processOpenSea
+	Assets []struct {
+		ID               int    `json:"id"`
+		TokenID          string `json:"token_id"`
+		NumSales         int    `json:"num_sales"`
+		ImageUrl         string `json:"image_url"`
+		ImagePreviewUrl  string `json:"image_preview_url"`
+		ImageOriginalUrl string `json:"image_original_url"`
+		AnimationUrl     string `json:"animation_url"`
+		Name             string `json:"name"`
+		Description      string `json:"description"`
+		Permalink        string `json:"permalink"`
+		Creator          struct {
+			User struct {
+				Username string `json:"username"`
+			} `json:"user"`
+			ProfileImageUrl string `json:"profile_img_url"`
+			Address         string `json:"address"`
+		} `json:"creator"`
+	} `json:"assets"`
 	DataSource string
 }
 
@@ -243,6 +265,39 @@ type FoundationProfileNonSocial struct {
 			} `json:"withdrawals"`
 		} `json:"accounts"`
 	} `json:"data"`
+}
+
+type OpenSeaProfileAccount struct {
+	Data struct {
+		User struct {
+			Username string `json:"username"`
+		} `json:"user"`
+		ProfileImageUrl string `json:"profile_img_url"`
+	} `json:"data"`
+}
+
+type OpenSeaProfileNft struct {
+	Assets []struct {
+		ID               int    `json:"id"`
+		TokenID          string `json:"token_id"`
+		NumSales         int    `json:"num_sales"`
+		ImageUrl         string `json:"image_url"`
+		ImagePreviewUrl  string `json:"image_preview_url"`
+		ImageOriginalUrl string `json:"image_original_url"`
+		AnimationUrl     string `json:"animation_url"`
+		Name             string `json:"name"`
+		Description      string `json:"description"`
+		Permalink        string `json:"permalink"`
+
+		// The owner of the NFT may or may not be the creator of the NFT as well
+		Creator struct {
+			User struct {
+				Username string `json:"username"`
+			} `json:"user"`
+			ProfileImageUrl string `json:"profile_img_url"`
+			Address         string `json:"address"`
+		} `json:"creator"`
+	} `json:"assets"`
 }
 
 type FoundationIdentity struct {
