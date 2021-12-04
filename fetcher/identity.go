@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const IdentityApiCount = 4
+const IdentityApiCount = 5
 
 func (f *fetcher) FetchIdentity(address string) (IdentityEntryList, error) {
 
@@ -22,6 +22,7 @@ func (f *fetcher) FetchIdentity(address string) (IdentityEntryList, error) {
 	// Part 2 - Add other data source here
 	go f.processFoundationNonSocial(address, ch)
 	go f.processOpenSea(address, ch)
+	go f.processZora(address, ch)
 	// TODO
 
 	// Final Part - Merge entry
@@ -329,6 +330,91 @@ func (f *fetcher) processOpenSea(address string, ch chan<- IdentityEntry) {
 	}
 	if len(newSeaRecord.Assets) != 0 || newSeaRecord.Username != "" || newSeaRecord.ProfileImageUrl != "" {
 		result.OpenSea = &newSeaRecord
+	}
+	ch <- result
+}
+
+func (f *fetcher) processZora(address string, ch chan<- IdentityEntry) {
+	var result IdentityEntry
+
+	zoraMediaQuery := `
+		id,
+		transactionHash,
+		contentHash,
+		metadataHash,
+		contentURI,
+		metadataURI,
+		createdAtTimestamp,
+		currentAsk {
+			amount,
+			createdAtTimestamp,
+			currency
+		}
+	`
+
+	// pulling from Zora's subgraph using GraphQL query
+	gqlQuery := map[string]string{
+		"query": fmt.Sprintf(`{
+			users(where: {id: "%s"}) {
+					creations {
+						%s
+					},
+					collection {
+						%s
+					},
+					currentBids {
+						id,
+						currency,
+						amount,
+						createdAtTimestamp
+					}
+				}
+			}
+		`, address, zoraMediaQuery, zoraMediaQuery),
+	}
+
+	jsonQuery, err := json.Marshal(gqlQuery)
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processZora] marshalling GraphQL query to JSON failed"
+		ch <- result
+		return
+	}
+
+	// sending a POST request which contains the GraphQL query in the body
+	body, err := sendRequest(f.httpClient, RequestArgs{
+		url:    ZoraUrl,
+		method: "POST",
+		body:   jsonQuery,
+	})
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processZora] fetch identity failed"
+		ch <- result
+		return
+	}
+
+	zoraProfile := ZoraProfile{}
+	err = json.Unmarshal(body, &zoraProfile)
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processZora] identity response JSON unmarshal failed"
+		ch <- result
+		return
+	}
+
+	// using Users[0] here since the JSON response is an array of accounts but we are only using one address currently
+	var newZoraRecord UserZoraIdentity
+	if len(zoraProfile.Data.Users) > 0 {
+		newZoraRecord = UserZoraIdentity{
+			Collection:  zoraProfile.Data.Users[0].Collection,
+			Creations:   zoraProfile.Data.Users[0].Creations,
+			CurrentBids: zoraProfile.Data.Users[0].CurrentBids,
+			DataSource:  ZORA,
+		}
+	}
+	if len(newZoraRecord.Collection) != 0 || len(newZoraRecord.Creations) != 0 || len(newZoraRecord.CurrentBids) != 0 {
+		result.Zora = &newZoraRecord
 	}
 	ch <- result
 }

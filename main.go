@@ -14,7 +14,10 @@ const (
 	// address = "0x000000064730640b7d670408d74280924883064f"
 
 	// Example address below which owns some NFTs on OpenSea
-	address = "0x6a9ab67aa546e518883a5f2913d4ce230436a18d"
+	// address = "0x6a9ab67aa546e518883a5f2913d4ce230436a18d"
+
+	// Example address below which owns NFTs on Zora
+	address = "0x02cc16c7fc26afc6df9ae15cef274e22ce6c24e5"
 )
 
 func main() {

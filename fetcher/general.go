@@ -28,6 +28,7 @@ const (
 	SuperrareUrl        = "https://superrare.com/api/v2/user?address=%s"
 	FoundationUrl       = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
 	OpenSeaUrl          = "https://api.opensea.io/api/v1"
+	ZoraUrl             = "https://api.thegraph.com/subgraphs/name/ourzora/zora-v1"
 	RaribleFollowingUrl = "https://api-mainnet.rarible.com/marketplace/api/v4/followings?owner=%s"
 	RaribleFollowerUrl  = "https://api-mainnet.rarible.com/marketplace/api/v4/followers?user=%s"
 )
@@ -178,8 +179,22 @@ type UserFoundationIdentityNonSocial struct {
 }
 
 type UserZoraIdentity struct {
-	Username   string
-	Website    string
+	Username string
+	Website  string
+
+	// Creations is media(NFTs) created by the user, while Collection is the media owned by the user
+	Collection []struct {
+		ZoraMedia
+	} `json:"collection"`
+	Creations []struct {
+		ZoraMedia
+	} `json:"creations"`
+	CurrentBids []struct {
+		ID                 string `json:"id"`
+		Currency           string `json:"currency"`
+		Amount             string `json:"amount"`
+		CreatedAtTimestamp string `json:"createdAtTimestamp"`
+	} `json:"currentBids"`
 	DataSource string
 }
 
@@ -298,6 +313,44 @@ type OpenSeaProfileNft struct {
 			Address         string `json:"address"`
 		} `json:"creator"`
 	} `json:"assets"`
+}
+
+type ZoraMedia struct {
+	ID                 string `json:"id"`
+	TransactionHash    string `json:"transactionHash"`
+	ContentHash        string `json:"contentHash"`
+	MetadataHash       string `json:"metadataHash"`
+	ContentURI         string `json:"contentURI"`
+	MetadataURI        string `json:"metadataURI"`
+	CreatedAtTimestamp string `json:"createdAtTimestamp"`
+
+	CurrentAsk struct {
+		Amount             string `json:"amount"`
+		CreatedAtTimestamp string `json:"createdAtTimestamp"`
+		Currency           struct {
+			Name   string `json:"name"`
+			Symbol string `json:"symbol"`
+		} `json:"currency"`
+	} `json:"currentAsk"`
+}
+
+type ZoraProfile struct {
+	Data struct {
+		Users []struct {
+			Collection []struct {
+				ZoraMedia
+			} `json:"collection"`
+			Creations []struct {
+				ZoraMedia
+			} `json:"creations"`
+			CurrentBids []struct {
+				ID                 string `json:"id"`
+				Currency           string `json:"currency"`
+				Amount             string `json:"amount"`
+				CreatedAtTimestamp string `json:"createdAtTimestamp"`
+			} `json:"currentBids"`
+		} `json:"users"`
+	} `json:"data"`
 }
 
 type FoundationIdentity struct {
