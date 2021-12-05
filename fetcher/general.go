@@ -29,6 +29,7 @@ const (
 	FoundationUrl       = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
 	OpenSeaUrl          = "https://api.opensea.io/api/v1"
 	ZoraUrl             = "https://api.thegraph.com/subgraphs/name/ourzora/zora-v1"
+	RaribleUrl          = "https://api.rarible.org/v0.1"
 	RaribleFollowingUrl = "https://api-mainnet.rarible.com/marketplace/api/v4/followings?owner=%s"
 	RaribleFollowerUrl  = "https://api-mainnet.rarible.com/marketplace/api/v4/followers?user=%s"
 )
@@ -78,11 +79,33 @@ type UserTwitterIdentity struct {
 }
 
 type UserRaribleIdentity struct {
-	Username        string
-	Homepage        string
-	ItemSold        int
-	AmountSoldInEth float64
-	DataSource      string
+	Username string
+	Homepage string
+
+	Owned struct {
+		Total int `json:"total"`
+		Items []struct {
+			RaribleItem
+		} `json:"items"`
+	}
+	Created struct {
+		Total int `json:"total"`
+		Items []struct {
+			RaribleItem
+		} `json:"items"`
+	}
+	Activities []struct {
+		ID              string `json:"id"`
+		Type            string `json:"@type"`
+		From            string `json:"from"`
+		Owner           string `json:"owner"`
+		Contract        string `json:"contract"`
+		TokenID         string `json:"tokenID"`
+		Value           string `json:"value"`
+		TransactionHash string `json:"transactionHash"`
+		Date            string `json:"date"`
+	} `json:"activities"`
+	DataSource string
 }
 
 type UserOpenSeaIdentity struct {
@@ -351,6 +374,40 @@ type ZoraProfile struct {
 			} `json:"currentBids"`
 		} `json:"users"`
 	} `json:"data"`
+}
+
+type RaribleItem struct {
+	ID         string `json:"id"`
+	Blockchain string `json:"blockchain"`
+	Contract   string `json:"contract"`
+	TokenID    string `json:"tokenId"`
+	LazySupply string `json:"lazySupply"`
+	MintedAt   string `json:"mintedAt"`
+	Supply     string `json:"supply"`
+	TotalStock string `json:"totalStock"`
+}
+
+type RaribleItemProfile struct {
+	Total int `json:"total"`
+	Items []struct {
+		RaribleItem
+	} `json:"items"`
+}
+
+type RaribleUserActivityProfile struct {
+	// Activities is an array of activity items defined in below struct
+	// Some fields may be used by TRANSFER and others by BUY,SELL activity types
+	Activities []struct {
+		ID              string `json:"id"`
+		Type            string `json:"@type"`
+		From            string `json:"from"`
+		Owner           string `json:"owner"`
+		Contract        string `json:"contract"`
+		TokenID         string `json:"tokenID"`
+		Value           string `json:"value"`
+		TransactionHash string `json:"transactionHash"`
+		Date            string `json:"date"`
+	} `json:"activities"`
 }
 
 type FoundationIdentity struct {

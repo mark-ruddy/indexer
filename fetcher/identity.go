@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const IdentityApiCount = 5
+const IdentityApiCount = 6
 
 func (f *fetcher) FetchIdentity(address string) (IdentityEntryList, error) {
 
@@ -23,6 +23,7 @@ func (f *fetcher) FetchIdentity(address string) (IdentityEntryList, error) {
 	go f.processFoundationNonSocial(address, ch)
 	go f.processOpenSea(address, ch)
 	go f.processZora(address, ch)
+	go f.processRarible(address, ch)
 	// TODO
 
 	// Final Part - Merge entry
@@ -317,7 +318,7 @@ func (f *fetcher) processOpenSea(address string, ch chan<- IdentityEntry) {
 	err = json.Unmarshal(nftBody, &nftSeaProfile)
 	if err != nil {
 		result.Err = err
-		result.Msg = "[processOpenSea] NFT identity response json unmarshal failed"
+		result.Msg = "[processOpenSea] NFT identity response JSON unmarshal failed"
 		ch <- result
 		return
 	}
@@ -415,6 +416,86 @@ func (f *fetcher) processZora(address string, ch chan<- IdentityEntry) {
 	}
 	if len(newZoraRecord.Collection) != 0 || len(newZoraRecord.Creations) != 0 || len(newZoraRecord.CurrentBids) != 0 {
 		result.Zora = &newZoraRecord
+	}
+	ch <- result
+}
+
+func (f *fetcher) processRarible(address string, ch chan<- IdentityEntry) {
+	var result IdentityEntry
+
+	// Rarible API supports chains like POLYGON etc., so here we must specify ETHEREUM
+	address = fmt.Sprintf("ETHEREUM:%s", address)
+
+	itemOwnerBody, err := sendRequest(f.httpClient, RequestArgs{
+		url:    fmt.Sprintf("%s/items/byOwner?owner=%s", RaribleUrl, address),
+		method: "GET",
+	})
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] fetch item owner data failed"
+		ch <- result
+		return
+	}
+
+	itemOwnerProfile := RaribleItemProfile{}
+	err = json.Unmarshal(itemOwnerBody, &itemOwnerProfile)
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] item owner data response JSON unmarshal failed"
+		ch <- result
+		return
+	}
+
+	// pulling data on owned "assets"(NFTs) this address is an owner of
+	itemCreatorBody, err := sendRequest(f.httpClient, RequestArgs{
+		url:    fmt.Sprintf("%s/items/byCreator?creator=%s", RaribleUrl, address),
+		method: "GET",
+	})
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] fetch item creator data failed"
+		ch <- result
+		return
+	}
+
+	itemCreatorProfile := RaribleItemProfile{}
+	err = json.Unmarshal(itemCreatorBody, &itemCreatorProfile)
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] item creator data response JSON unmarshal failed"
+		ch <- result
+		return
+	}
+
+	// get data on a users Rarible NFT activities such as transferring, buying, selling, minting etc.
+	userActivityBody, err := sendRequest(f.httpClient, RequestArgs{
+		url:    fmt.Sprintf("%s/activities/byUser/?user=%s&type=BUY,SELL,TRANSFER_FROM,TRANSFER_TO,MINT,BURN", RaribleUrl, address),
+		method: "GET",
+	})
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] fetch user activity data failed"
+		ch <- result
+		return
+	}
+
+	userActivityProfile := RaribleUserActivityProfile{}
+	err = json.Unmarshal(userActivityBody, &userActivityProfile)
+	if err != nil {
+		result.Err = err
+		result.Msg = "[processRarible] user activity data response JSON unmarshal failed"
+		ch <- result
+		return
+	}
+
+	newRaribleRecord := UserRaribleIdentity{
+		Owned:      itemOwnerProfile,
+		Created:    itemCreatorProfile,
+		Activities: userActivityProfile.Activities,
+		DataSource: RARIBLE,
+	}
+	if len(newRaribleRecord.Owned.Items) != 0 || len(newRaribleRecord.Created.Items) != 0 || len(newRaribleRecord.Activities) != 0 {
+		result.Rarible = &newRaribleRecord
 	}
 	ch <- result
 }

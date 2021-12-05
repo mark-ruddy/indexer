@@ -17,7 +17,10 @@ const (
 	// address = "0x6a9ab67aa546e518883a5f2913d4ce230436a18d"
 
 	// Example address below which owns NFTs on Zora
-	address = "0x02cc16c7fc26afc6df9ae15cef274e22ce6c24e5"
+	// address = "0x02cc16c7fc26afc6df9ae15cef274e22ce6c24e5"
+
+	// Example address below which owns NFTs on Rarible
+	address = "0xd451d1ca630813325fab7b58c6d584e98b884329"
 )
 
 func main() {
