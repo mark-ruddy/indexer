@@ -429,6 +429,7 @@ func (f *fetcher) processRarible(address string, ch chan<- IdentityEntry) {
 	// Rarible API supports chains like POLYGON etc., so here we must specify ETHEREUM
 	address = fmt.Sprintf("ETHEREUM:%s", address)
 
+	// pulling data on NFTs this address is an owner of
 	itemOwnerBody, err := sendRequest(f.httpClient, RequestArgs{
 		url:    fmt.Sprintf("%s/items/byOwner?owner=%s", RaribleUrl, address),
 		method: "GET",
@@ -449,7 +450,7 @@ func (f *fetcher) processRarible(address string, ch chan<- IdentityEntry) {
 		return
 	}
 
-	// pulling data on owned "assets"(NFTs) this address is an owner of
+	// pulling data on NFTs this address is a creator of
 	itemCreatorBody, err := sendRequest(f.httpClient, RequestArgs{
 		url:    fmt.Sprintf("%s/items/byCreator?creator=%s", RaribleUrl, address),
 		method: "GET",
