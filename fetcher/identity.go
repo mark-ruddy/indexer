@@ -193,8 +193,7 @@ func (f *fetcher) processSuperrare(address string, ch chan<- IdentityEntry) {
 }
 
 // processFoundationNonSocial will query the Foundation GraphQL API
-// The Foundation API does not provide endpoints for social media at this moment
-// processFoundationNonSocial will get NFT, ETH Financial and Creator data for an address instead
+// it will get NFT, ETH Financial and Creator data for an address instead
 func (f *fetcher) processFoundationNonSocial(address string, ch chan<- IdentityEntry) {
 	var result IdentityEntry
 
@@ -275,7 +274,7 @@ func (f *fetcher) processFoundationNonSocial(address string, ch chan<- IdentityE
 	ch <- result
 }
 
-// processOpenSea will query the OpenSea API for data for an address
+// processOpenSea will query the OpenSea HTTPS API for data on an address
 // currently the data being pulled is user data like PFP image URL, NFTs owned, etc
 // The OpenSea API is rate-limited and may require an API key in production environments
 func (f *fetcher) processOpenSea(address string, ch chan<- IdentityEntry) {
@@ -302,7 +301,7 @@ func (f *fetcher) processOpenSea(address string, ch chan<- IdentityEntry) {
 		return
 	}
 
-	// pulling data on owned "assets"(NFTs) this address is an owner of
+	// pulling data on owned assets(NFTs) this address is an owner of
 	nftBody, err := sendRequest(f.httpClient, RequestArgs{
 		url:    fmt.Sprintf("%s/assets?owner=%s", OpenSeaUrl, address),
 		method: "GET",
@@ -335,6 +334,8 @@ func (f *fetcher) processOpenSea(address string, ch chan<- IdentityEntry) {
 	ch <- result
 }
 
+// processZora will query the Zora GraphQL API for data on an address
+// it will pull data related to media(NFTs) both created/owned and bids
 func (f *fetcher) processZora(address string, ch chan<- IdentityEntry) {
 	var result IdentityEntry
 
@@ -420,6 +421,8 @@ func (f *fetcher) processZora(address string, ch chan<- IdentityEntry) {
 	ch <- result
 }
 
+// processRarible will query the Rarible HTTPS API for an address
+// it will pull data related to NFT collections both created/owned, ETH financial and bid data
 func (f *fetcher) processRarible(address string, ch chan<- IdentityEntry) {
 	var result IdentityEntry
 

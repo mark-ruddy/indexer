@@ -24,12 +24,21 @@ const (
 )
 
 const (
-	ContextUrl          = "https://context.app/api/profile/%s"
-	SuperrareUrl        = "https://superrare.com/api/v2/user?address=%s"
-	FoundationUrl       = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
-	OpenSeaUrl          = "https://api.opensea.io/api/v1"
-	ZoraUrl             = "https://api.thegraph.com/subgraphs/name/ourzora/zora-v1"
-	RaribleUrl          = "https://api.rarible.org/v0.1"
+	ContextUrl   = "https://context.app/api/profile/%s"
+	SuperrareUrl = "https://superrare.com/api/v2/user?address=%s"
+
+	// FoundationUrl Usage/Docs: https://thegraph.com/hosted-service/subgraph/f8n/fnd
+	FoundationUrl = "https://api.thegraph.com/subgraphs/name/f8n/fnd"
+
+	// OpenSeaUrl Usage/Docs: https://docs.opensea.io/reference/api-overview
+	OpenSeaUrl = "https://api.opensea.io/api/v1"
+
+	// ZoraUrl Usage/Docs: https://thegraph.com/hosted-service/subgraph/ourzora/zora-v1
+	ZoraUrl = "https://api.thegraph.com/subgraphs/name/ourzora/zora-v1"
+
+	// RaribleUrl Usage/Docs: https://api.rarible.org/v0.1/doc
+	RaribleUrl = "https://api.rarible.org/v0.1"
+
 	RaribleFollowingUrl = "https://api-mainnet.rarible.com/marketplace/api/v4/followings?owner=%s"
 	RaribleFollowerUrl  = "https://api-mainnet.rarible.com/marketplace/api/v4/followers?user=%s"
 )
@@ -112,8 +121,7 @@ type UserOpenSeaIdentity struct {
 	Username        string
 	Homepage        string
 	ProfileImageUrl string
-	// Deliberately leaving json tags on below struct to allow assignment in processOpenSea
-	Assets []struct {
+	Assets          []struct {
 		ID               int    `json:"id"`
 		TokenID          string `json:"token_id"`
 		NumSales         int    `json:"num_sales"`
@@ -179,8 +187,7 @@ type UserFoundationIdentity struct {
 type UserFoundationIdentityNonSocial struct {
 	IsAdmin         bool
 	NetRevenueInETH string
-	// Deliberately leaving json tags on below structs to allow assignment in processFoundationNonSocial
-	Nfts []struct {
+	Nfts            []struct {
 		TokenIPFSPath      string `json:"tokenIPFSPath"`
 		Name               string `json:"name"`
 		Description        string `json:"description"`
@@ -205,7 +212,7 @@ type UserZoraIdentity struct {
 	Username string
 	Website  string
 
-	// Creations is media(NFTs) created by the user, while Collection is the media owned by the user
+	// Collection is the media(NFTs) owned by the user, while Creations is media created by the user
 	Collection []struct {
 		ZoraMedia
 	} `json:"collection"`
@@ -338,6 +345,7 @@ type OpenSeaProfileNft struct {
 	} `json:"assets"`
 }
 
+// ZoraMedia is used for JSON unmarshalling of NFTs from the Zora GraphQL API
 type ZoraMedia struct {
 	ID                 string `json:"id"`
 	TransactionHash    string `json:"transactionHash"`
@@ -376,6 +384,7 @@ type ZoraProfile struct {
 	} `json:"data"`
 }
 
+// RaribleItem is used for JSON unmarshalling of NFTs from the Rarible HTTPS API
 type RaribleItem struct {
 	ID         string `json:"id"`
 	Blockchain string `json:"blockchain"`
